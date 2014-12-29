@@ -1,0 +1,115 @@
+**********************************************************************
+*	README file for OpenWatcom compatible STLport 4.6.2              *
+*                                                                    *
+*   Wojciech Gazda                                                   *
+*   http://trurl.asua.org.pl                                         *
+*   gazda@fema.krakow.pl                                             *
+*                                                                    *
+**********************************************************************
+
+1. General information
+
+    This STLPort distribution has been updated for use with Watcom compilers
+    on various versions of the OS/2 operating system.
+
+    Supported compilres:
+
+    - Watcom 11c
+    - OpenWatcom 1.0
+    - OpenWatcom 1.1
+    - OpenWatcom 1.2
+    - OpenWatcom 1.3
+
+    This distribution was tested on eComStation 1.0 (OS/2 v4.5) but
+    it is supposed to work on OS/2 v4.0 (Merlin) and possibly
+    OS/2 3.0 (Warp) - actual compatibility depends on compiler support.
+
+    Links:
+
+    OS/2 (eComStation):     http://www.ecomstation.com
+    Watcom:                 http://www.openwatcom.com
+    STLPort:                http://www.stlport.org
+
+
+1.1. Installation
+
+    No special configuration is required. This distribution is ready to
+    work with Watcom: just unpack it to the directory and update
+    INCLUDE environment variable placing /<directory>/stlport before path
+    to native compiler headers.
+
+
+2. General compatibility
+2.1. Namespace issues
+
+    Currently, only the OpenWatcom 1.3 is able to put STL into the
+    std:: namespace. Namespace support in older versions is broken enough
+    to make it unusable with STLport.
+
+    Altough compilers older then 1.3 does not support std:: for STL and
+    put all symbols into global "anonymous" namespace, you can use
+    namespaces in your programs together with STLport.
+
+
+2.2. Regression tests
+
+    There is updated watcom.wmk makefile in the ./test/regression.
+    You can either compile entire test suite, individual test cases or
+    prepare preprocessor output for each example.
+
+    Exception test suite has updated watcom.wmk makefile in the
+    ./test/eh. You can compile entire test suite only.
+
+    Please note that version 1.3 of the OpenWatcom cannot compile the
+    test_rope.cpp from the exception handling test suite - compiler
+    crashes with access violation regardless of options used
+    (this test is by default disabled for Watcom 1.3).
+
+    For more information see notes placed in the respective makefiles.
+    Exception test suite is described in online STLport documentation
+    (included in distribution).
+
+
+3. Exception handling
+
+    This is darkest side of the Watcom compilers. All versions fail
+    to pass exception test suite when compiled with standard options.
+
+    Observations:
+      - test suite crashes with access violation,
+      - time to crash depends on number of exceptions thrown during
+        test run: when number of iterations per test is decresed more
+        tests pass and vice-versa,
+      - symptoms suggests that Watcom destroys MORE objects during
+        stack unwinding then it created (this is my guess only...),
+        it looks that OpenWatcom can throw limited number of exception
+        correctly
+
+    Workaround:
+        You can use the -d2i option to make exception handling usable
+        (this was tested with OpenWatcom 1.3 only).
+
+        The -d2i makes compiler to emit ALL inline functions as standard
+        function calls, which is of course with some performance penalty...
+
+        Altough -d2i debug option by default disables all optimisations,
+        you can re-enable them by placing -o* options AFTER -d2i.
+        This example enable speed optimisation:
+
+            wpp386 -d2i -ot <remaining_aruments>
+
+        In order to get rid of debugging information from the final
+        executable, you should use the strip utility supplied with Watcom
+        or disable emiting them at link stage.
+
+
+3.1. Watcom's native exception headers
+
+    For now only the except.h is used in STLport.
+
+    Standard exceptions header (exceptio.h) cannot be used due to hack
+    in it: the stream class is redefined with primitive stub, which
+    clashes with STLport streams; STLPort's standard exception classes
+    are used instead.
+
+
